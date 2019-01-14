@@ -18,6 +18,6 @@
     "socket.io": "^2.2.0"
   },
   "scripts": {
-    "dev": "node ./src/lab.js"
+    "start": "node ./src/index.js"
   }
 }
