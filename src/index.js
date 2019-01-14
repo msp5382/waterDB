@@ -67,12 +67,12 @@ low(adapter).then(db => {
       if (json == null) {
         db.unset(path).write();
       } else {
-        db.set(path, json).write().then(() => (res.send(200,"{ \"OK\" : \"OK\"}")))
+        db.set(path, json).write()
       }
     }
 
     broadcast(pathParser(req.body.path), db, io);
-   
+    res.send(200)
   });
 
   app.post("/increse/", function(req, res) {
@@ -180,5 +180,3 @@ const pathParser = (...path) => {
     }
   }
 };
-
-//todo: add update count , id generate on push with param
