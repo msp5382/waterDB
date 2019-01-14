@@ -6,6 +6,6 @@ socket.emit('path',{
     path:"/",
     auth:"pass"
 })
-socket.on('/.a.s.d',(d) => {
+socket.on('/',(d) => {
     console.log(d)
 })

@@ -17,13 +17,13 @@ const socketIO = require("socket.io"),
   http = require("http"),
   express = require("express"),
   _ = require("lodash"),
-  low = require('lowdb'),
-  FileAsync = require('lowdb/adapters/FileAsync'),
-  adapter = new FileAsync('./database/db.json')
+  low = require("lowdb"),
+  FileAsync = require("lowdb/adapters/FileAsync"),
+  adapter = new FileAsync("./database/db.json");
 
-const documentRoot = "/"
+const documentRoot = "/";
 
-low(adapter).then(db =>{
+low(adapter).then(db => {
   // our localhost port
   const port = 5500;
 
@@ -50,105 +50,135 @@ low(adapter).then(db =>{
           auth:authid
         }
       */
-      if(validate(param.path,"listen",path.auth)){
-       socket.join(param.path);
+      if (validate(param.path, "listen", path.auth)) {
+        socket.join(param.path);
       }
     });
   });
 
   app.post("/set/", function(req, res) {
-    let path = pathParser(req.body.path) // main.sub.sub.sub
-    console.log(pathParser(req.body.path))
+    let path = pathParser(req.body.path); // main.sub.sub.sub
     let json = req.body.content;
-    if(validate(path,"set",req.body.auth)){
+
+    if (validate(path, "set", req.body.auth)) {
       if (_.some(json, "{") || _.some(json, "}")) {
         json = JSON.parse(json);
       }
-      db.set(path, json).write();
+      if (json == null) {
+        db.unset(path).write();
+      } else {
+        db.set(path, json).write().then(() => (res.send(200,"{ \"OK\" : \"OK\"}")))
+      }
     }
-    broadcast(pathParser(req.body.path),db,io)
-    res.send(200)
+
+    broadcast(pathParser(req.body.path), db, io);
+   
+  });
+
+  app.post("/increse/", function(req, res) {
+    let path = pathParser(req.body.path); // main.sub.sub.sub
+    let value = parseInt(req.body.value)
+    if(db.has(path).value() && validate(path, "increse", req.body.auth)){
+      if(Number.isInteger(db.get(path).value())){
+        db.update(path, n => n + value).write()
+      }else{
+        db.set(path,value).write()
+      }
+    }else if(validate(path, "increse", req.body.auth)){
+      db.set(path,value).write()
+    }
+    broadcast(pathParser(req.body.path), db, io);
+    res.send(200);
   });
 
   app.post("/push/", function(req, res) {
-    let path = pathParser(req.body.path) // main.sub.sub.sub
-    console.log(pathParser(req.body.path))
+    let path = pathParser(req.body.path); // main.sub.sub.sub
     let pathAvaliable;
     let json = req.body.content;
-    let pathDat = db.get(path).value()
+    let pathDat = db.get(path).value();
 
-    if(path == documentRoot || path == documentRoot+'.'){
-      pathAvaliable = false
-    }else{
-      if(Array.isArray(pathDat)){
-        pathAvaliable = true
-      }else if(_.isEmpty(pathDat)){
-        db.set(path,[]).write()
-        pathAvaliable = true
-      }else{
-        pathAvaliable = false
+    if (path == documentRoot || path == documentRoot + "." || !validate(path, "read", req.body.auth)) {
+      pathAvaliable = false;
+    } else {
+      if (Array.isArray(pathDat)) {
+        pathAvaliable = true;
+      } else if (!db.has(path).value()) {
+        db.set(path, []).write();
+        pathAvaliable = true;
+      } else {
+        pathAvaliable = false;
       }
     }
 
-
-    if(pathAvaliable){
-      if(validate(path,"push",req.body.auth)){
+    if (pathAvaliable) {
+      if (validate(path, "push", req.body.auth)) {
         if (_.some(json, "{") || _.some(json, "}")) {
           json = JSON.parse(json);
         }
-        db.get(path).push(json).write();
+        db.get(path)
+          .push(json)
+          .write();
       }
 
-      broadcast(pathParser(req.body.path),db,io)
-      res.send(200)
-    }else{
-      res.send(404)
+      broadcast(pathParser(req.body.path), db, io);
+      res.send(200);
+    } else {
+      res.send(404);
     }
   });
 
   app.post("/read/", function(req, res) {
-    let path = pathParser(req.body.path) // main.sub.sub.sub
-    if(validate(path,"read",req.body.auth)){
-        res.send(db.get(path).value())
+    let path = pathParser(req.body.path); // main.sub.sub.sub
+    let status = validate(path, "read", req.body.auth);
+    if (status && req.body.content.take) {
+      res.send(
+        db
+          .get(path)
+          .take(parseInt(req.body.content.take))
+          .value()
+      );
+    } else if (status) {
+      res.send(db.get(path).value());
     }
   });
 
   app.post("/select/", function(req, res) {
-    let path = pathParser(req.body.path) // main.sub.sub.sub
-    let selector = req.body.selector
-    if(validate(path,"select",req.body.auth)){
+    let path = pathParser(req.body.path); // main.sub.sub.sub
+    let selector = req.body.selector;
+    if (validate(path, "select", req.body.auth)) {
       if (_.some(selector, "{") || _.some(selector, "}")) {
         selector = JSON.parse(selector);
       }
-      res.send(db.get(path).find(selector).value())
+      res.send(
+        db
+          .get(path)
+          .find(selector)
+          .value()
+      );
     }
   });
 
-  server.listen(port, () => console.log(`Listening on port ${port}`));
-})
+  server.listen(port, () => console.log(`waterDB on port ${port}`));
+});
 
-const broadcast = (path,db,io) => {
-  io.emit(
-    path,
-    db
-      .get(path)
-      .value()
-  );
-}
+const broadcast = (path, db, io) => {
+  io.emit(path, db.get(path).value());
+};
 
-const validate = (path,event,auth) => {
-  return true
-}
+const validate = (path, event, auth, ...content) => {
+  return true;
+};
 
 const pathParser = (...path) => {
-  console.log(path)
-  if(path[1]){
-    return path
-  }else{
-    if(path[0] == documentRoot){
-      return documentRoot
-    }else{
-      return documentRoot + '.' + path
+  if (path[1]) {
+    return path;
+  } else {
+    if (path[0] == documentRoot) {
+      return documentRoot;
+    } else {
+      return documentRoot + "." + path;
     }
   }
-}
+};
+
+//todo: add update count , id generate on push with param
