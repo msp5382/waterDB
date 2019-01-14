@@ -1,0 +1,22 @@
+{
+  "name": "water",
+  "version": "1.0.0",
+  "main": "./src/index.js",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "crypto": "^1.0.1",
+    "express": "^4.16.4",
+    "file-async": "^0.2.0",
+    "fs": "^0.0.1-security",
+    "fuse.js": "^3.3.0",
+    "json-stringify": "^1.0.0",
+    "jsonwebtoken": "^8.4.0",
+    "lodash": "^4.17.11",
+    "lowdb": "^1.0.0",
+    "socket.io": "^2.2.0"
+  },
+  "scripts": {
+    "dev": "node ./src/lab.js"
+  }
+}
