@@ -25,7 +25,7 @@ const documentRoot = "/";
 
 low(adapter).then(db => {
   // our localhost port
-  const port = 5500;
+  const port = 80;
 
   const app = express();
 
@@ -158,7 +158,7 @@ low(adapter).then(db => {
     }
   });
 
-  server.listen(port, () => console.log(`waterDB on port ${port}`));
+  server.listen(port,'0.0.0.0', () => console.log(`waterDB on port ${port}`));
 });
 
 const broadcast = (path, db, io) => {
