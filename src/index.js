@@ -19,7 +19,7 @@ const socketIO = require("socket.io"),
   _ = require("lodash"),
   low = require("lowdb"),
   FileAsync = require("lowdb/adapters/FileAsync"),
-  adapter = new FileAsync("./database/db.json");
+  adapter = new FileAsync("./src/database/db.json");
 
 const documentRoot = "/";
 
