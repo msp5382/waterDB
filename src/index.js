@@ -50,7 +50,7 @@ low(adapter).then(db => {
           auth:authid
         }
       */
-      if (validate(param.path, "listen", path.auth)) {
+      if (validate(param.path, "listen","socket")) {
         socket.join(param.path);
       }
     });
