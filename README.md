@@ -10,7 +10,7 @@ Simple start waterDB
 Server-side
 ```
   git clone https://github.com/msp5382/waterDB.git
-  cd waterDB-*
+  cd waterDB*
   yarn dev
 ```
 
