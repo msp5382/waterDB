@@ -134,7 +134,6 @@ low(adapter).then(db => {
       res.send(
         db
           .get(path)
-          .take(parseInt(req.body.content.take))
           .value()
       );
     } else if (status) {
