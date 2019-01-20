@@ -19,7 +19,8 @@ const socketIO = require("socket.io"),
   _ = require("lodash"),
   low = require("lowdb"),
   FileAsync = require("lowdb/adapters/FileAsync"),
-  adapter = new FileAsync("./src/database/db.json");
+  adapter = new FileAsync("./src/database/db.json"),
+  cors = require('cors')
 
 const documentRoot = "/";
 
@@ -35,11 +36,7 @@ low(adapter).then(db => {
   //support parsing of application/x-www-form-urlencoded post data
   app.use(bodyParser.urlencoded({ extended: true }));
   
-  app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
+  app.use(cors());
 
   // our server instance
   const server = http.createServer(app);
