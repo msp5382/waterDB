@@ -26,7 +26,7 @@ const documentRoot = "/";
 
 low(adapter).then(db => {
   // our localhost port
-  const port = 80;
+  const port = 8080;
 
   const app = express();
 
